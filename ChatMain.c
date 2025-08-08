@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 #include "Networking.h"
-
+#include "UtilityFunctions.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,13 +14,32 @@ int main(int argc, char *argv[])
     printf("3. Register\n");
     printf("4. Settings\n");
     printf("5. Exit\n");
-    printf("Enter your choice (1-5): ");
-
+    
     while (1)
     {
+        printf("Enter your choice (1-5): ");
 
-        scanf("%d", &choice);
-        clear_input_buffer();  // Clear the input buffer
+        choice = getSingleDigitNumericalInput();
+        // char input[16];
+
+        // //get input
+        // if (!fgets(input, sizeof(input), stdin)) {
+        //     printf("Input error. Response to possibly to large\n");
+        //     continue;
+        // }
+
+        // // Clear remaining input if too large
+        // if (strchr(input, '\n') == NULL) {
+        //     int ch;
+        //     while ((ch = getchar()) != '\n' && ch != EOF);
+        // }
+
+        // // Validate input
+        // if (sscanf(input, "%d", &choice) != 1 || input[strspn(input, "0123456789\n")] != '\0') {
+        //     printf("Invalid input. Please enter a single number.\n");
+        //     continue;
+        // }
+
         switch (choice) 
         {
             case 1:

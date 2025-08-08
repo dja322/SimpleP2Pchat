@@ -27,3 +27,13 @@ int getSingleDigitNumericalInput()
 
     return choice;
 }
+
+FILE* openToReadFile(const char* filename)
+{
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        // File does not exist
+        return NULL;
+    }
+    return file;
+}

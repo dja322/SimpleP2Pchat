@@ -25,7 +25,7 @@ void receive_thread(void* arg) {
     }
 }
 
-int main() {
+int establish_connection() {
     WSADATA wsa;
     struct sockaddr_in server, client;
     char buffer[BUFFER_SIZE];

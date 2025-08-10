@@ -1,4 +1,5 @@
 
+#include "../UtilityFiles/UtilityFunctions.h"
 #include "UserSettings.h"
 
 void userSettingsMenu() {
@@ -41,9 +42,9 @@ void userSettingsMenu() {
     }
 }
 
-int loadSettings(settings_t *settings)
+int loadSettings(settings_t *settings, const char *filename)
 {
-    FILE *file = openToReadFile("settings.dat");
+    FILE *file = openToReadFile(filename);
     if (file == NULL) {
         perror("Failed to open settings file");
         return -1;
@@ -53,14 +54,4 @@ int loadSettings(settings_t *settings)
     fclose(file);
 
     return 1;
-}
-
-void readSettingsFile(FILE *file, settings_t *settings)
-{
-    if (file == NULL || settings == NULL) {
-        fprintf(stderr, "Invalid file or settings pointer\n");
-        return;
-    }
-
-    fread(settings, sizeof(settings_t), 1, file);
 }

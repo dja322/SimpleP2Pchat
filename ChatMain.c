@@ -1,9 +1,21 @@
 
-#include "Networking.h"
+#include "Networking/Networking.h"
 #include "UtilityFiles/UtilityFunctions.h"
+#include "DataTypes.h"
+#include "UserActivity/UserSettings.h"
 
 int main(int argc, char *argv[])
 {
+
+    settings_t userSettings;
+
+    loadSettings(&userSettings, "settings.dat");
+
+    printf("User Settings Loaded:\n");
+    printf("Username: %s\n", userSettings.username);
+    printf("Password: %s\n", userSettings.password);
+    printf("Server IP: %s\n", userSettings.server_ip);
+    printf("Server Port: %d\n", userSettings.server_port);
 
     int choice = 0;
 
@@ -14,7 +26,7 @@ int main(int argc, char *argv[])
     printf("4. Settings\n");
     printf("5. Exit\n");
     
-    while (1)
+    while (0)
     {
         printf("Enter your choice (1-5): ");
 

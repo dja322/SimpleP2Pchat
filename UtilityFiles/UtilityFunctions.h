@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "DataTypes.h"
+#include "../DataTypes.h"
 
 int getSingleDigitNumericalInput();
 

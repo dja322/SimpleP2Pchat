@@ -3,7 +3,7 @@
 #define NETWORKING_H
 
 
-void receive_thread(void* arg);
+void* receive_thread(void* arg);
 int establish_connection();
 
 

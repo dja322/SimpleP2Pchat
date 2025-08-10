@@ -1,107 +1,104 @@
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <stdio.h>
-#include <winsock2.h>
-#include <windows.h>
-#include <process.h> // for _beginthread
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <arpa/inet.h>
 
-#pragma comment(lib, "ws2_32.lib")
 
 #define PORT 5000
 #define BUFFER_SIZE 1024
 
-SOCKET sock;
+int sockfd;
 
-void receive_thread(void* arg) {
+void *receive_thread(void* arg) {
     char buffer[BUFFER_SIZE];
     while (1) {
-        int len = recv(sock, buffer, sizeof(buffer) - 1, 0);
+        ssize_t len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
         if (len <= 0) {
-            printf("Connection closed.\n");
+            printf("\nConnection closed.\n");
             exit(0);
         }
         buffer[len] = '\0';
         printf("\n[Friend]: %s\n> ", buffer);
         fflush(stdout);
     }
+    return NULL;
 }
 
 int establish_connection() {
-    WSADATA wsa;
-    struct sockaddr_in server, client;
+    struct sockaddr_in addr;
+    pthread_t recv_thread;
     char buffer[BUFFER_SIZE];
     char mode;
-    int client_len = sizeof(client);
-
-    printf("Starting Winsock...\n");
-    if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
-        printf("Failed. Error Code : %d", WSAGetLastError());
-        return 1;
-    }
 
     printf("Run as server (s) or client (c)? ");
     scanf(" %c", &mode);
     getchar(); // Clear newline
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) {
-        printf("Could not create socket: %d\n", WSAGetLastError());
-        return 1;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        perror("Socket creation failed");
+        exit(1);
     }
 
-    server.sin_family = AF_INET;
-    server.sin_port = htons(PORT);
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(PORT);
 
     if (mode == 's') {
-        server.sin_addr.s_addr = INADDR_ANY;
+        addr.sin_addr.s_addr = INADDR_ANY;
 
-        if (bind(sock, (struct sockaddr*)&server, sizeof(server)) == SOCKET_ERROR) {
-            printf("Bind failed with error code: %d\n", WSAGetLastError());
-            return 1;
+        if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+            perror("Bind failed");
+            exit(1);
         }
 
-        listen(sock, 1);
-        printf("Waiting for incoming connection on port %d...\n", PORT);
+        listen(sockfd, 1);
+        printf("Waiting for a connection on port %d...\n", PORT);
 
-        SOCKET new_sock = accept(sock, (struct sockaddr*)&client, &client_len);
-        if (new_sock == INVALID_SOCKET) {
-            printf("Accept failed: %d\n", WSAGetLastError());
-            return 1;
+        socklen_t addrlen = sizeof(addr);
+        int new_sock = accept(sockfd, (struct sockaddr *)&addr, &addrlen);
+        if (new_sock < 0) {
+            perror("Accept failed");
+            exit(1);
         }
 
-        closesocket(sock); // use the new socket from now on
-        sock = new_sock;
+        close(sockfd); // use new_sock from now on
+        sockfd = new_sock;
         printf("Connected to client.\n");
 
     } else if (mode == 'c') {
         char ip[100];
         printf("Enter server IP: ");
         scanf("%s", ip);
-        getchar();
+        getchar(); // clear newline
 
-        server.sin_addr.s_addr = inet_addr(ip);
+        if (inet_pton(AF_INET, ip, &addr.sin_addr) <= 0) {
+            perror("Invalid address");
+            exit(1);
+        }
 
-        if (connect(sock, (struct sockaddr*)&server, sizeof(server)) < 0) {
-            printf("Connection failed.\n");
-            return 1;
+        if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+            perror("Connection failed");
+            exit(1);
         }
 
         printf("Connected to server.\n");
     } else {
         printf("Invalid mode.\n");
-        return 1;
+        exit(1);
     }
 
-    _beginthread(receive_thread, 0, NULL);
+    pthread_create(&recv_thread, NULL, receive_thread, NULL);
 
     while (1) {
         printf("> ");
         fgets(buffer, BUFFER_SIZE, stdin);
         if (strncmp(buffer, "exit", 4) == 0)
             break;
-        send(sock, buffer, strlen(buffer), 0);
+        send(sockfd, buffer, strlen(buffer), 0);
     }
 
-    closesocket(sock);
-    WSACleanup();
+    close(sockfd);
     return 0;
 }

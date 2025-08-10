@@ -28,16 +28,12 @@ TARGET = p2pchat.exe
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -g $(INCLUDES)
-
+LDFLAGS = -lpthread
 
 all: $(TARGET)
 
-
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $@ $^
-
-
-
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f $(TARGET)

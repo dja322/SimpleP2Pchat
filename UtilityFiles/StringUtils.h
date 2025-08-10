@@ -193,5 +193,17 @@ Dependencies: none
 */
 char toLowerCase(char testChar);
 
+/*
+Name: stripTrailingSpaces
+Process: Replaces all trailing spaces of a string with NULL chars
+Function input/parameters: string
+Function output/parameters: stripped string
+Function output/returned: none
+Device input/---: none
+Device output/---: none
+Dependencies: compareStrings
+*/
+void stripTrailingSpaces(char *str);
+
 
 #endif

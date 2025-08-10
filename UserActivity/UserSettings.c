@@ -1,5 +1,5 @@
-
 #include "../UtilityFiles/UtilityFunctions.h"
+#include "../UtilityFiles/StringUtils.h"
 #include "UserSettings.h"
 
 void userSettingsMenu() {
@@ -22,6 +22,10 @@ void userSettingsMenu() {
             case 1:
                 // See settings
                 printf("Current settings:\n");
+                if (loadSettings(&userSettings, "settings.dat") == 1) {
+                    printf("Username: %s\n", userSettings.username);
+                    printf("Password: %s\n", userSettings.password);
+                }
                 break;
             case 2:
                 // Change Username
@@ -47,10 +51,48 @@ int loadSettings(settings_t *settings, const char *filename)
     FILE *file = openToReadFile(filename);
     if (file == NULL) {
         perror("Failed to open settings file");
-        return -1;
+        return 0;
     }
 
-    fread(settings, sizeof(settings_t), 1, file);
+    char line[128];
+    char value[64];
+
+    // Initialize struct fields to empty/default
+    settings->username[0] = '\0';
+    settings->password[0] = '\0';
+    settings->server_ip[0] = '\0';
+    settings->server_port = 0;
+
+    while (fgets(line, sizeof(line), file)) {
+        // Remove trailing newline
+        stripTrailingSpaces(line);
+
+        // Username
+        if (findSubString(line, "Username:") == 0) {
+            getSubString(value, line, 9, getStringLength(line) - 1);
+            stripTrailingSpaces(value);
+            copyString(settings->username, value);
+        }
+        // Password
+        else if (findSubString(line, "Password:") == 0) {
+            getSubString(value, line, 9, getStringLength(line) - 1);
+            stripTrailingSpaces(value);
+            copyString(settings->password, value);
+        }
+        // IP
+        else if (findSubString(line, "IP:") == 0) {
+            getSubString(value, line, 3, getStringLength(line) - 1);
+            stripTrailingSpaces(value);
+            copyString(settings->server_ip, value);
+        }
+        // PORT
+        else if (findSubString(line, "PORT:") == 0) {
+            getSubString(value, line, 5, getStringLength(line) - 1);
+            stripTrailingSpaces(value);
+            settings->server_port = atoi(value);
+        }
+    }
+
     fclose(file);
 
     return 1;

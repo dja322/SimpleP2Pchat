@@ -13,26 +13,36 @@ void userSettingsMenu() {
     int choice = 0;
 
     settings_t userSettings;
-    
-    while (1)
+    const int successCode = loadSettings(&userSettings, "settings.dat");
+
+    while (successCode)
     {
+        printf("Enter your choice (1-4): ");
         choice = getSingleDigitNumericalInput();
 
         switch (choice) { 
             case 1:
                 // See settings
                 printf("Current settings:\n");
-                if (loadSettings(&userSettings, "settings.dat") == 1) {
-                    printf("Username: %s\n", userSettings.username);
-                    printf("Password: %s\n", userSettings.password);
-                }
+                printf("Username: %s\n", userSettings.username);
+                printf("Password: %s\n", userSettings.password);
+                printf("IP: %s\n", userSettings.server_ip);
+                printf("PORT: %d\n", userSettings.server_port);
+
                 break;
             case 2:
                 // Change Username
-                
+                printf("Enter new username: ");
+                fgets(userSettings.username, sizeof(userSettings.username), stdin);
+                stripTrailingSpaces(userSettings.username);
+                writeSettings(&userSettings, "settings.dat");
                 break;
             case 3:
                 // Change Password
+                printf("Enter new password: ");
+                fgets(userSettings.password, sizeof(userSettings.password), stdin);
+                stripTrailingSpaces(userSettings.password);
+                writeSettings(&userSettings, "settings.dat");
                 break;
             case 4:
                 // Back to Main Menu

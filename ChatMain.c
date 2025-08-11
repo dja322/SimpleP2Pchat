@@ -12,14 +12,6 @@ int main(int argc, char *argv[])
     loadSettings(&userSettings, "settings.dat");
 
     printf("User Settings Loaded:\n");
-    printf("Username: %s\n", userSettings.username);
-    printf("Password: %s\n", userSettings.password);
-    printf("Server IP: %s\n", userSettings.server_ip);
-    printf("Server Port: %d\n", userSettings.server_port);
-
-    userSettings.server_port = 12345;
-
-    writeSettings(&userSettings, "settings.dat");
 
     int choice = 0;
 
@@ -30,7 +22,7 @@ int main(int argc, char *argv[])
     printf("4. Settings\n");
     printf("5. Exit\n");
     
-    while (0)
+    while (1)
     {
         printf("Enter your choice (1-5): ");
 
@@ -49,6 +41,7 @@ int main(int argc, char *argv[])
                 break;
             case 4:
                 printf("Opening settings...\n");
+                userSettingsMenu();
                 break;
             case 5:
                 printf("Exiting program...\n");

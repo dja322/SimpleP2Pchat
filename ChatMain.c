@@ -17,6 +17,10 @@ int main(int argc, char *argv[])
     printf("Server IP: %s\n", userSettings.server_ip);
     printf("Server Port: %d\n", userSettings.server_port);
 
+    userSettings.server_port = 12345;
+
+    writeSettings(&userSettings, "settings.dat");
+
     int choice = 0;
 
     printf("Peer-to-Peer Chat Menu:\n");

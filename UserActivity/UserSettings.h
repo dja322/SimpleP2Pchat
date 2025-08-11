@@ -4,6 +4,7 @@
 
 void userSettingsMenu();
 int loadSettings(settings_t *settings, const char *filename);
+int writeSettings(const settings_t *settings, const char *filename);
 
 
 #endif // USER_SETTINGS_H

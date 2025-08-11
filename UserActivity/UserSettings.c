@@ -48,7 +48,7 @@ void userSettingsMenu() {
 
 int loadSettings(settings_t *settings, const char *filename)
 {
-    FILE *file = openToReadFile(filename);
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Failed to open settings file");
         return 0;
@@ -69,29 +69,48 @@ int loadSettings(settings_t *settings, const char *filename)
 
         // Username
         if (findSubString(line, "Username:") == 0) {
-            getSubString(value, line, 9, getStringLength(line) - 1);
+            getSubString(value, line, 10, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             copyString(settings->username, value);
         }
         // Password
         else if (findSubString(line, "Password:") == 0) {
-            getSubString(value, line, 9, getStringLength(line) - 1);
+            getSubString(value, line, 10, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             copyString(settings->password, value);
         }
         // IP
         else if (findSubString(line, "IP:") == 0) {
-            getSubString(value, line, 3, getStringLength(line) - 1);
+            getSubString(value, line, 4, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             copyString(settings->server_ip, value);
         }
         // PORT
         else if (findSubString(line, "PORT:") == 0) {
-            getSubString(value, line, 5, getStringLength(line) - 1);
+            getSubString(value, line, 6, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             settings->server_port = atoi(value);
         }
     }
+
+    fclose(file);
+
+    return 1;
+}
+
+int writeSettings(const settings_t *settings, const char *filename)
+{
+    // Open file in "w" mode to clear contents before writing
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Failed to open settings file");
+        return 0;
+    }
+
+    fprintf(file, "Username: %s", settings->username);
+    fprintf(file, "Password: %s", settings->password);
+    fprintf(file, "IP      : %s", settings->server_ip);
+    fprintf(file, "PORT    :  %d", settings->server_port);
 
     fclose(file);
 

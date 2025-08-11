@@ -63,31 +63,33 @@ int loadSettings(settings_t *settings, const char *filename)
     settings->server_ip[0] = '\0';
     settings->server_port = 0;
 
+    int LABEL_END = 10;
+
     while (fgets(line, sizeof(line), file)) {
         // Remove trailing newline
         stripTrailingSpaces(line);
 
         // Username
-        if (findSubString(line, "Username:") == 0) {
-            getSubString(value, line, 10, getStringLength(line) - 1);
+        if (findSubString(line, "Username") == 0) {
+            getSubString(value, line, LABEL_END, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             copyString(settings->username, value);
         }
         // Password
-        else if (findSubString(line, "Password:") == 0) {
-            getSubString(value, line, 10, getStringLength(line) - 1);
+        else if (findSubString(line, "Password") == 0) {
+            getSubString(value, line, LABEL_END, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             copyString(settings->password, value);
         }
         // IP
-        else if (findSubString(line, "IP:") == 0) {
-            getSubString(value, line, 4, getStringLength(line) - 1);
+        else if (findSubString(line, "IP") == 0) {
+            getSubString(value, line, LABEL_END, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             copyString(settings->server_ip, value);
         }
         // PORT
-        else if (findSubString(line, "PORT:") == 0) {
-            getSubString(value, line, 6, getStringLength(line) - 1);
+        else if (findSubString(line, "PORT") == 0) {
+            getSubString(value, line, LABEL_END, getStringLength(line) - 1);
             stripTrailingSpaces(value);
             settings->server_port = atoi(value);
         }
@@ -110,7 +112,7 @@ int writeSettings(const settings_t *settings, const char *filename)
     fprintf(file, "Username: %s", settings->username);
     fprintf(file, "Password: %s", settings->password);
     fprintf(file, "IP      : %s", settings->server_ip);
-    fprintf(file, "PORT    :  %d", settings->server_port);
+    fprintf(file, "PORT    : %d", settings->server_port);
 
     fclose(file);
 

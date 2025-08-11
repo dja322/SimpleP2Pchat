@@ -8,4 +8,9 @@ typedef struct settings_struct {
     int server_port;
 } settings_t;
 
+typedef struct contact_struct {
+    char name[100];
+    char address[100];
+} contact_t;
+
 #endif // DATA_TYPES_H

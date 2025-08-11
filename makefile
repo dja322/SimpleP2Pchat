@@ -6,11 +6,13 @@ ENCRYPTION_DIR = Encryption
 NETWORKING_DIR = Networking
 USERACTIVITY_DIR = UserActivity
 UTILITY_DIR = UtilityFiles
+CONTACTS_DIR = Contacts
 
 # Source files
 SRC = ChatMain.c \
 	$(ENCRYPTION_DIR)/Encryption.c \
 	$(NETWORKING_DIR)/Networking.c \
+	$(CONTACTS_DIR)/Contacts.c \
 	$(USERACTIVITY_DIR)/UserSettings.c \
 	$(UTILITY_DIR)/StringUtils.c \
 	$(UTILITY_DIR)/UtilityFunctions.c
@@ -20,6 +22,7 @@ INCLUDES = -I. \
 	     -I$(ENCRYPTION_DIR) \
 	     -I$(NETWORKING_DIR) \
 	     -I$(USERACTIVITY_DIR) \
+	     -I$(CONTACTS_DIR) \
 	     -I$(UTILITY_DIR)
 
 # Output

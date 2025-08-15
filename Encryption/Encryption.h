@@ -9,19 +9,24 @@
 #include <time.h>
 
 typedef struct {
-    long long n;
-    long long e;
-    long long d;
+    unsigned long long n;
+    unsigned long long e;
+    unsigned long long d;
 } RSAKeys;
 
 
-static long long modexp(long long base, long long exp, long long mod); 
-static int is_probably_prime(long long n, int k); 
-static long long gcd(long long a, long long b); 
-static long long modinv(long long e, long long phi);
-RSAKeys generate_keys();
-void encrypt_data(const char* input, long long* output, size_t* len, RSAKeys keys);
-void decrypt_data(const long long* input, size_t len, char* output, RSAKeys keys);
-
+static unsigned long long modexp(unsigned long long base, unsigned long long exp, unsigned long long mod); 
+static int is_probably_prime(unsigned long long n, int k); 
+static unsigned long long gcd(unsigned long long a, unsigned long long b); 
+static unsigned long long modinv(unsigned long long e, unsigned long long phi);
+static int compute_block_size(unsigned long long n);
+static unsigned long long rand_ull(void);
+static unsigned long long rand_bits(int bits);
+RSAKeys generate_keys_bits(int prime_bits);
+void encrypt_data_blocks(const unsigned char *in, int len,
+                         unsigned long long *out, int *out_len, RSAKeys keys);
+void decrypt_data_blocks(const unsigned long long *in, int in_len,
+                         unsigned char *out, int *out_len,
+                         int original_len, RSAKeys keys);
 
 #endif // ENCRYPTION_H

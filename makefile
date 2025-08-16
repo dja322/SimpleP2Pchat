@@ -10,7 +10,7 @@ CONTACTS_DIR = Contacts
 
 # Source files
 SRC = ChatMain.c \
-	$(ENCRYPTION_DIR)/Encryption.c \
+	$(ENCRYPTION_DIR)/RSAOpenSSLEncryption.c \
 	$(NETWORKING_DIR)/Networking.c \
 	$(CONTACTS_DIR)/Contacts.c \
 	$(USERACTIVITY_DIR)/UserSettings.c \
@@ -31,7 +31,7 @@ TARGET = p2pchat.exe
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -g $(INCLUDES)
-LDFLAGS = -lpthread
+LDFLAGS = -lpthread -DUSE_OPENSSL -lcrypto
 
 all: $(TARGET)
 

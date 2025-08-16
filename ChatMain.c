@@ -1,5 +1,6 @@
 
 #include "Networking/Networking.h"
+#include "Encryption/RSAOpenSSLEncryption.h"
 #include "UtilityFiles/UtilityFunctions.h"
 #include "DataTypes.h"
 #include "UserActivity/UserSettings.h"
@@ -7,6 +8,11 @@
 
 int main(int argc, char *argv[])
 {
+    int testEncryption = 0;
+
+    if (testEncryption) {
+        demo_encryption(argc, argv);
+    }
 
     settings_t userSettings;
 

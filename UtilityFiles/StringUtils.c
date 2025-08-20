@@ -526,3 +526,28 @@ void stripTrailingSpaces(char *str)
     }
     //end loop from end of string
 }
+
+/*
+Name: stripTrailingSpaces
+Process: Replaces all trailing spaces or newlines of a string with NULL chars
+Function input/parameters: string
+Function output/parameters: stripped string
+Function output/returned: none
+Device input/---: none
+Device output/---: none
+Dependencies: compareStrings
+*/
+void stripTrailingSpacesAndNewlines(char *str)
+{
+    //initialize index ot length of string -1 to get highest array index
+    int index = getStringLength(str) - 1;
+
+    //loop while space is found at end of string
+    while (str[index] == SPACE || str[index] == '\n')
+    {
+        //replace space with NULL_CHAR
+        str[index] = NULL_CHAR;
+        index--;
+    }
+    //end loop from end of string
+}

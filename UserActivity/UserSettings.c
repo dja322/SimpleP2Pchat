@@ -42,14 +42,14 @@ void userSettingsMenu() {
                 // Change Username
                 printf("Enter new username: ");
                 fgets(userSettings.username, sizeof(userSettings.username), stdin);
-                stripTrailingSpaces(userSettings.username);
+                stripTrailingSpacesAndNewlines(userSettings.username);
                 writeSettings(&userSettings, "settings.dat");
                 break;
             case 3:
                 // Change Password
                 printf("Enter new password: ");
                 fgets(userSettings.password, sizeof(userSettings.password), stdin);
-                stripTrailingSpaces(userSettings.password);
+                stripTrailingSpacesAndNewlines(userSettings.password);
                 writeSettings(&userSettings, "settings.dat");
                 break;
             case 4:
@@ -85,30 +85,30 @@ int loadSettings(settings_t *settings, const char *filename)
 
     while (fgets(line, sizeof(line), file)) {
         // Remove trailing newline
-        stripTrailingSpaces(line);
+        stripTrailingSpacesAndNewlines(line);
 
         // Username
         if (findSubString(line, "Username") == 0) {
             getSubString(value, line, LABEL_END, getStringLength(line) - 1);
-            stripTrailingSpaces(value);
+            stripTrailingSpacesAndNewlines(value);
             copyString(settings->username, value);
         }
         // Password
         else if (findSubString(line, "Password") == 0) {
             getSubString(value, line, LABEL_END, getStringLength(line) - 1);
-            stripTrailingSpaces(value);
+            stripTrailingSpacesAndNewlines(value);
             copyString(settings->password, value);
         }
         // IP
         else if (findSubString(line, "IP") == 0) {
             getSubString(value, line, LABEL_END, getStringLength(line) - 1);
-            stripTrailingSpaces(value);
+            stripTrailingSpacesAndNewlines(value);
             copyString(settings->server_ip, value);
         }
         // PORT
         else if (findSubString(line, "PORT") == 0) {
             getSubString(value, line, LABEL_END, getStringLength(line) - 1);
-            stripTrailingSpaces(value);
+            stripTrailingSpacesAndNewlines(value);
             settings->server_port = atoi(value);
         }
     }
@@ -127,10 +127,10 @@ int writeSettings(const settings_t *settings, const char *filename)
         return 0;
     }
 
-    fprintf(file, "Username: %s", settings->username);
-    fprintf(file, "Password: %s", settings->password);
-    fprintf(file, "IP      : %s", settings->server_ip);
-    fprintf(file, "PORT    : %d", settings->server_port);
+    fprintf(file, "Username: %s\n", settings->username);
+    fprintf(file, "Password: %s\n", settings->password);
+    fprintf(file, "IP      : %s\n", settings->server_ip);
+    fprintf(file, "PORT    : %d\n", settings->server_port);
 
     fclose(file);
 

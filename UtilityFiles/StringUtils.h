@@ -53,6 +53,19 @@ Device output/---: none
 Dependencies: none
 */
 int getStringLength( const char *str );
+
+/*
+Name: getStringLengthToNewline
+Process: finds the number of characters in (length of) a c-style string to newline
+Function input/parameters: string to be processed (const char *)
+Function output/parameters: none
+Function output/returned: length of string (int)
+Device input/---: none
+Device output/---: none
+Dependencies: none
+*/
+int getStringLengthToNewline( const char *str );
+
 /*
 Name: printSpaces
 Process: recursively prints the given number of spaces to the screen
@@ -204,6 +217,18 @@ Device output/---: none
 Dependencies: compareStrings
 */
 void stripTrailingSpaces(char *str);
+
+/*
+Name: stripTrailingSpaces
+Process: Replaces all trailing spaces or newlines of a string with NULL chars
+Function input/parameters: string
+Function output/parameters: stripped string
+Function output/returned: none
+Device input/---: none
+Device output/---: none
+Dependencies: compareStrings
+*/
+void stripTrailingSpacesAndNewlines(char *str);
 
 
 #endif

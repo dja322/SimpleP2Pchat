@@ -8,11 +8,20 @@ void contactMenu()
     contact_t contacts[MAX_CONTACTS];
     int contact_count = 0;
 
-    int choice;
+    int choice = 3;
     char name[100];
     char address[100];
 
-    loadContactsFile("contacts.dat", contacts, &contact_count);
+    const int successCode = loadContactsFile("contacts.dat", contacts, &contact_count);
+
+    if (!successCode)
+    {
+        printf("No existing contacts found. Starting with an empty contact list.\n");
+        FILE* file = fopen("contacts.dat", "w");
+        if (file) {
+            fclose(file);
+        }
+    }
 
     while (1) {
         printf("Contact Menu:\n");
@@ -87,11 +96,11 @@ void list_contacts(contact_t* contacts, int contact_count) {
     }
 }
 
-void loadContactsFile(const char* filename, contact_t* contacts, int* contact_count) {
+int loadContactsFile(const char* filename, contact_t* contacts, int* contact_count) {
     FILE* file = fopen(filename, "r");
     if (!file) {
         printf("Error opening file: %s\n", filename);
-        return;
+        return 0;
     }
 
     while (*contact_count < MAX_CONTACTS && fscanf(file, "%99[^,],%99[^\n]\n",
@@ -102,6 +111,8 @@ void loadContactsFile(const char* filename, contact_t* contacts, int* contact_co
     }
 
     fclose(file);
+
+    return 1;
 }
 
 void saveContactsFile(const char* filename, contact_t* contacts, int contact_count) {

@@ -34,10 +34,13 @@ int main(int argc, char *argv[])
 
         choice = getSingleDigitNumericalInput();
 
+        fflush(stdout);
+
         switch (choice) 
         {
             case 1:
-                printf("Connecting to peer...\n");
+                printf("Setting up networking...\n");
+                runConnection();
                 break;
             case 2:
                 printf("Viewing contacts...\n");

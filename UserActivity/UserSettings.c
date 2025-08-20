@@ -9,8 +9,14 @@ void userSettingsMenu() {
     
     settings_t userSettings;
     const int successCode = loadSettings(&userSettings, "settings.dat");
+
+    if (!successCode)
+    {
+        initializeSettings(&userSettings);
+        writeSettings(&userSettings, "settings.dat");
+    }
     
-    while (successCode)
+    while (1)
     {
         printf("Settings: \n");
         printf("1. See settings\n");
@@ -19,6 +25,8 @@ void userSettingsMenu() {
         printf("4. Back to Main Menu\n");
         printf("Enter your choice (1-4): ");
         choice = getSingleDigitNumericalInput();
+
+        fflush(stdout);
 
         switch (choice) { 
             case 1:
@@ -127,4 +135,13 @@ int writeSettings(const settings_t *settings, const char *filename)
     fclose(file);
 
     return 1;
+}
+
+void initializeSettings(settings_t *settings)
+{
+    // Set default values
+    copyString(settings->username, "default_user");
+    copyString(settings->password, "default_pass");
+    copyString(settings->server_ip, "127.0.0.1");
+    settings->server_port = 5000;
 }

@@ -20,11 +20,11 @@ typedef struct {
 
 RSAKeys generate_keys_u64(int prime_bits);
 
-void encrypt_blocks_u64(const unsigned char *in, int len,
+void encrypt_blocks(const unsigned char *in, int len,
                         unsigned long long *out, int *out_len,
                         const RSAKeys *keys);
 
-void decrypt_blocks_u64(const unsigned long long *in, int in_len,
+void decrypt_blocks(const unsigned long long *in, int in_len,
                         unsigned char *out, int *out_len,
                         int original_len, const RSAKeys *keys);
 
@@ -42,11 +42,11 @@ RSAKeysBN generate_keys_bn(int prime_bits);
 
 int compute_block_size_bn(const BIGNUM *n);
 
-void encrypt_blocks_bn(const unsigned char *in, int len,
+void encrypt_blocks(const unsigned char *in, int len,
                        BIGNUM **out, int *out_len,
                        const RSAKeysBN *keys);
 
-void decrypt_blocks_bn(BIGNUM **in, int in_len,
+void decrypt_blocks(BIGNUM **in, int in_len,
                        unsigned char *out, int *out_len,
                        int original_len, const RSAKeysBN *keys);
 

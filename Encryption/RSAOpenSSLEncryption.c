@@ -143,7 +143,7 @@ RSAKeys generate_keys_u64(int prime_bits) {
     return keys;
 }
 
-void encrypt_blocks_u64(const unsigned char *in, int len,
+void encrypt_blocks(const unsigned char *in, int len,
                         unsigned long long *out, int *out_len,
                         const RSAKeys *keys) {
     int blk = compute_block_size_u64(keys->n);
@@ -158,7 +158,7 @@ void encrypt_blocks_u64(const unsigned char *in, int len,
     *out_len = op;
 }
 
-void decrypt_blocks_u64(const unsigned long long *in, int in_len,
+void decrypt_blocks(const unsigned long long *in, int in_len,
                         unsigned char *out, int *out_len,
                         int original_len, const RSAKeys *keys) {
     int blk = compute_block_size_u64(keys->n);
@@ -229,7 +229,7 @@ int compute_block_size_bn(const BIGNUM *n) {
     return b;
 }
 
-void encrypt_blocks_bn(const unsigned char *in, int len,
+void encrypt_blocks(const unsigned char *in, int len,
                        BIGNUM **out, int *out_len,
                        const RSAKeysBN *keys) {
     BN_CTX *ctx = BN_CTX_new();
@@ -249,7 +249,7 @@ void encrypt_blocks_bn(const unsigned char *in, int len,
     BN_CTX_free(ctx);
 }
 
-void decrypt_blocks_bn(BIGNUM **in, int in_len,
+void decrypt_blocks(BIGNUM **in, int in_len,
                        unsigned char *out, int *out_len,
                        int original_len, const RSAKeysBN *keys) {
     BN_CTX *ctx = BN_CTX_new();
@@ -302,14 +302,14 @@ int demo_encryption(int argc, char **argv) {
     int msg_len = (int)strlen((const char*)message);
 
     unsigned long long ct[1024]; int ct_len = 0;
-    encrypt_blocks_u64(message, msg_len, ct, &ct_len, &keys);
+    encrypt_blocks(message, msg_len, ct, &ct_len, &keys);
 
     printf("Ciphertext blocks (u64):\n");
     for (int i = 0; i < ct_len; i++) printf("%llu ", ct[i]);
     printf("\n");
 
     unsigned char pt[2048]; int pt_len = 0;
-    decrypt_blocks_u64(ct, ct_len, pt, &pt_len, msg_len, &keys);
+    decrypt_blocks(ct, ct_len, pt, &pt_len, msg_len, &keys);
     printf("Decrypted: %s\n", pt);
 
 #else
@@ -324,7 +324,7 @@ int demo_encryption(int argc, char **argv) {
     int msg_len = (int)strlen((const char*)message);
 
     BIGNUM *ct[1024]; int ct_len = 0;
-    encrypt_blocks_bn(message, msg_len, ct, &ct_len, &keys);
+    encrypt_blocks(message, msg_len, ct, &ct_len, &keys);
 
     printf("Ciphertext blocks (hex):\n");
     for (int i = 0; i < ct_len; i++) {
@@ -334,7 +334,7 @@ int demo_encryption(int argc, char **argv) {
     printf("\n");
 
     unsigned char pt[4096]; int pt_len = 0;
-    decrypt_blocks_bn(ct, ct_len, pt, &pt_len, msg_len, &keys);
+    decrypt_blocks(ct, ct_len, pt, &pt_len, msg_len, &keys);
     printf("Decrypted: %s\n", pt);
 
     free_blocks_bn(ct, ct_len);

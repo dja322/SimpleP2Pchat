@@ -1,6 +1,8 @@
 
 #include "Networking.h"
-
+#include "../UtilityFiles/UtilityFunctions.h"
+#include "../UtilityFiles/StringUtils.h"
+#include "../UserActivity/UserSettings.h"
 
 #define PORT 5000
 #define BUFFER_SIZE 1024
@@ -8,21 +10,30 @@
 int sockfd;
 
 void *receive_thread(void* arg) {
+    bool usernameKnown = false;
+    char username[BUFFER_SIZE];
     char buffer[BUFFER_SIZE];
+
+    ssize_t len = recv(sockfd, username, sizeof(username) - 1, 0);
+    if (len > 0) {
+        username[len] = '\0';
+        usernameKnown = true;
+    }
+
     while (1) {
-        ssize_t len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+        len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
         if (len <= 0) {
             printf("\nConnection closed.\n");
             exit(0);
         }
         buffer[len] = '\0';
-        printf("\n[Friend]: %s\n> ", buffer);
+        printf("\n[%s]: %s\n> ", usernameKnown ? username : "Unknown", buffer);
         fflush(stdout);
     }
     return NULL;
 }
 
-int establish_connection() {
+int establish_connection(settings_t *settings) {
     struct sockaddr_in addr;
     pthread_t recv_thread;
     char buffer[BUFFER_SIZE];
@@ -85,7 +96,10 @@ int establish_connection() {
         exit(1);
     }
 
+    printf("Connection established. You can start chatting.\n");
     pthread_create(&recv_thread, NULL, receive_thread, NULL);
+    sleep(1); // Give the thread time to start
+    send(sockfd, settings->username, strlen(settings->username), 0);
 
     while (1) {
         printf("> ");
@@ -97,4 +111,39 @@ int establish_connection() {
 
     close(sockfd);
     return 0;
+}
+
+void runConnection()
+{
+    int choice = 0;
+
+    fflush(stdout);
+
+    settings_t userSettings;
+    if (loadSettings(&userSettings, "settings.dat") == 0) {
+        printf("Failed to load settings. Please check your settings file.\n");
+        return;
+    }
+
+    while (1)
+    {
+        printf("1. Set up connection\n");
+        printf("2. Back to Main Menu\n");
+        printf("Enter your choice (1-2): ");
+        choice = getSingleDigitNumericalInput();
+
+        switch (choice)
+        {
+            case 1:
+                printf("Setting up networking...\n");
+                establish_connection(&userSettings);
+                break;
+            case 2:
+                printf("Returning to main menu...\n");
+                return;
+            default:
+                printf("Invalid choice. Please select a valid option.\n");
+                break;
+        }
+    }
 }

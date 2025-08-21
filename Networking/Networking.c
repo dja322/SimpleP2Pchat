@@ -16,9 +16,9 @@ void *receive_thread(void* arg) {
     unsigned char buffer[BUFFER_SIZE];
     unsigned long long recvBuffer[BUFFER_SIZE];
     int recvLen = 0;
-    RSAKeys* keys = (RSAKeys*)arg;
-    RSAKeys* ownKeys = &keys[0];
-    RSAKeys* otherKeys = &keys[1];
+    KeyPair *kp = (KeyPair*)arg;
+    RSAKeys *ownKeys = kp->own;
+    RSAKeys *otherKeys = kp->other;
 
     ssize_t len = recv(sockfd, username, sizeof(username) - 1, 0);
     if (len > 0) {
@@ -110,10 +110,13 @@ int establish_connection(settings_t *settings) {
 
     RSAKeys keys = generate_keys_u64(32);
     RSAKeys otherKeys = {0,0,0};
-    RSAKeys* AllKeys[] = {&keys, &otherKeys};
+    // Allocate a KeyPair on the heap so it survives after the function scope
+    KeyPair *kp = malloc(sizeof(KeyPair));
+    kp->own = &keys;
+    kp->other = &otherKeys;
 
     printf("Connection established. You can start chatting.\n");
-    pthread_create(&recv_thread, NULL, receive_thread, (void*)&AllKeys);
+    pthread_create(&recv_thread, NULL, receive_thread, (void*)kp);
     sleep(1); // Give the thread time to start
     send(sockfd, settings->username, strlen(settings->username), 0);
     send(sockfd, &keys.e, sizeof(keys.e), 0);

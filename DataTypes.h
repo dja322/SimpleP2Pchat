@@ -13,9 +13,4 @@ typedef struct contact_struct {
     char address[100];
 } contact_t;
 
-typedef struct {
-    RSAKeys *own;
-    RSAKeys *other;
-} KeyPair;
-
 #endif // DATA_TYPES_H

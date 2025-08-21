@@ -18,6 +18,11 @@ typedef struct {
     unsigned long long n, e, d;
 } RSAKeys;
 
+typedef struct {
+    RSAKeys *own;
+    RSAKeys *other;
+} KeyPair;
+
 RSAKeys generate_keys_u64(int prime_bits);
 
 void encrypt_blocks_u64(const unsigned char *in, int len,

@@ -32,20 +32,33 @@ void *receive_thread(void* arg) {
     printf("other public key (n): %llu\n", otherKeys->n);
 
     while (1) {
-        len = recv(sockfd, recvBuffer, sizeof(recvBuffer) - 1, 0);
-        if (len <= 0) {
+        int msgSize;
+        ssize_t r = recv(sockfd, &msgSize, sizeof(msgSize), MSG_WAITALL);
+        if (r <= 0) {
             printf("\nConnection closed.\n");
             exit(0);
         }
 
-        printf("len: %ld\n", len);
-        for (int i = 0; i < len; i++) {
-            printf("Recieved encrypted message: %llu\n", recvBuffer[i]);
+        // Sanity check
+        if (msgSize <= 0 || msgSize > sizeof(recvBuffer)) {
+            printf("Invalid message size: %d\n", msgSize);
+            exit(1);
         }
 
-        decrypt_blocks_u64(recvBuffer, len, buffer, &recvLen, BUFFER_SIZE, ownKeys);
+        // Receive exactly msgSize bytes
+        r = recv(sockfd, recvBuffer, msgSize, MSG_WAITALL);
+        if (r <= 0) {
+            printf("\nConnection closed while reading message.\n");
+            exit(0);
+        }
 
-        buffer[len] = '\0';
+        int numBlocks = msgSize / sizeof(unsigned long long);
+        int recvLen = 0;
+
+        decrypt_blocks_u64(recvBuffer, numBlocks,
+                        buffer, &recvLen, BUFFER_SIZE, ownKeys);
+
+        buffer[recvLen] = '\0';
         printf("\n[%s]: %s\n> ", usernameKnown ? username : "Unknown", buffer);
         fflush(stdout);
     }
@@ -140,31 +153,42 @@ int establish_connection(settings_t *settings) {
 
     while (1) {
         printf("> ");
-    if (!fgets(buffer, BUFFER_SIZE, stdin)) {
-        break; // EOF or error
-    }
+        if (!fgets(buffer, BUFFER_SIZE, stdin)) {
+            break; // EOF or error
+        }
 
-    if (strncmp(buffer, "exit", 4) == 0)
-        break;
+        if (strncmp(buffer, "exit", 4) == 0)
+            break;
 
-    // Compute block size safely for allocation
-    int blk = compute_block_size_u64(otherKeys.n);
-    int maxBlocks = (strlen(buffer) + blk - 1) / blk;
+        int blk = compute_block_size_u64(otherKeys.n);
+        int maxBlocks = (strlen(buffer) + blk - 1) / blk;
 
-    // Allocate send buffer to exactly the needed size
-    unsigned long long sendBuffer[maxBlocks];
+        unsigned long long sendBuffer[maxBlocks];
+        int sendBufferLen;
 
-    encrypt_blocks_u64(buffer, strlen(buffer),
-                       sendBuffer, &sendBufferLen, &otherKeys);
+        encrypt_blocks_u64(buffer, strlen(buffer),
+                        sendBuffer, &sendBufferLen, &otherKeys);
 
-    if (sendBufferLen > 0) {
-        printf("Encrypted Message (first block): %llu\n", sendBuffer[0]);
+        if (sendBufferLen > 0) {
+            int msgSize = sendBufferLen * sizeof(unsigned long long);
 
-        // Send only the valid portion of the buffer
-        send(sockfd, sendBuffer, sendBufferLen * sizeof(unsigned long long), 0);
-    } else {
-        printf("Nothing to encrypt.\n");
-    }
+            // First send the message size
+            if (send(sockfd, &msgSize, sizeof(msgSize), 0) != sizeof(msgSize)) {
+                perror("send length");
+                break;
+            }
+
+            // Then send the ciphertext blocks
+            if (send(sockfd, sendBuffer, msgSize, 0) != msgSize) {
+                perror("send data");
+                break;
+            }
+
+            printf("Sent encrypted message of %d blocks (%d bytes)\n", 
+                sendBufferLen, msgSize);
+        } else {
+            printf("Nothing to encrypt.\n");
+        }
     }
 
     close(sockfd);

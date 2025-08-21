@@ -15,6 +15,7 @@
 // (implementations of helpers remain static, only public functions are declared in .h)
 
 static unsigned long long rand_ull(void) {
+    srand(time(NULL));
     unsigned long long r = 0;
     int bits = 0;
     while (bits < 64) {
@@ -301,7 +302,7 @@ int demo_encryption(int argc, char **argv) {
     RSAKeys keys = generate_keys_u64(prime_bits);
     printf("U64 keys: n=%llu, e=%llu, d=%llu\n", keys.n, keys.e, keys.d);
 
-    const unsigned char *message = (const unsigned char*)msg;
+    const char *message = (const char*)msg;
     int msg_len = (int)strlen((const char*)message);
 
     unsigned long long ct[1024]; int ct_len = 0;

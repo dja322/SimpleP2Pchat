@@ -28,13 +28,21 @@ void *receive_thread(void* arg) {
     len = recv(sockfd, &otherKeys->e, sizeof(otherKeys->e), 0);
     len = recv(sockfd, &otherKeys->n, sizeof(otherKeys->n), 0);
 
+    printf("other public key (e): %llu\n", otherKeys->e);
+    printf("other public key (n): %llu\n", otherKeys->n);
+
     while (1) {
         len = recv(sockfd, recvBuffer, sizeof(recvBuffer) - 1, 0);
         if (len <= 0) {
             printf("\nConnection closed.\n");
             exit(0);
         }
-        
+
+        printf("len: %ld\n", len);
+        for (int i = 0; i < len; i++) {
+            printf("Recieved encrypted message: %llu\n", recvBuffer[i]);
+        }
+
         decrypt_blocks_u64(recvBuffer, len, buffer, &recvLen, BUFFER_SIZE, ownKeys);
 
         buffer[len] = '\0';
@@ -128,6 +136,7 @@ int establish_connection(settings_t *settings) {
     printf("Data received from client:\n");
     printf("Own public key (e): %llu\n", keys.e);
     printf("Own public key (n): %llu\n", keys.n);
+    printf("Own private key (d): %llu\n", keys.d);
 
     while (1) {
         printf("> ");

@@ -115,7 +115,7 @@ static int is_probably_prime_u64(unsigned long long n, int k) {
     return 1;
 }
 
-static int compute_block_size_u64(unsigned long long n) {
+int compute_block_size_u64(unsigned long long n) {
     int b = 0;
     unsigned long long t = 1;
     while (t <= (n - 1) / 256ULL) { t *= 256ULL; b++; }
@@ -143,16 +143,19 @@ RSAKeys generate_keys_u64(int prime_bits) {
     return keys;
 }
 
-void encrypt_blocks_u64(const unsigned char *in, int len,
+void encrypt_blocks_u64(const char *in, int len,
                         unsigned long long *out, int *out_len,
                         const RSAKeys *keys) {
+    printf("Encrypting blocks...\n");
     int blk = compute_block_size_u64(keys->n);
+    printf("Block size: %d\n", blk);
     int pos = 0, op = 0;
     while (pos < len) {
         int chunk = (len - pos < blk) ? (len - pos) : blk;
         unsigned long long m = 0;
         for (int i = 0; i < chunk; i++) m = (m << 8) | in[pos + i];
         out[op++] = modexp_u64(m, keys->e, keys->n);
+        printf("op: %llu\n", out[op - 1]);
         pos += chunk;
     }
     *out_len = op;

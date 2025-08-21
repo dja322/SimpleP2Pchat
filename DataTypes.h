@@ -1,6 +1,12 @@
 #ifndef DATA_TYPES_H
 #define DATA_TYPES_H
 
+#ifdef _WIN32
+    #define CLEAR "cls"
+#else
+    #define CLEAR "clear"
+#endif
+
 typedef struct settings_struct {
     char username[50];
     char password[50];

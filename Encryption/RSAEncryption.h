@@ -25,7 +25,9 @@ typedef struct {
 
 RSAKeys generate_keys_u64(int prime_bits);
 
-void encrypt_blocks_u64(const unsigned char *in, int len,
+int compute_block_size_u64(unsigned long long n);
+
+void encrypt_blocks_u64(const char *in, int len,
                         unsigned long long *out, int *out_len,
                         const RSAKeys *keys);
 

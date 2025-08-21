@@ -122,17 +122,40 @@ int establish_connection(settings_t *settings) {
     send(sockfd, &keys.e, sizeof(keys.e), 0);
     send(sockfd, &keys.n, sizeof(keys.n), 0);
 
-    unsigned long long sendBuffer[BUFFER_SIZE];
+    // unsigned long long sendBuffer[BUFFER_SIZE];
+    int sendBufferLen = 0;
+
+    printf("Data received from client:\n");
+    printf("Own public key (e): %llu\n", keys.e);
+    printf("Own public key (n): %llu\n", keys.n);
 
     while (1) {
         printf("> ");
-        fgets(buffer, BUFFER_SIZE, stdin);
-        if (strncmp(buffer, "exit", 4) == 0)
-            break;
+    if (!fgets(buffer, BUFFER_SIZE, stdin)) {
+        break; // EOF or error
+    }
 
-        encrypt_blocks_u64((unsigned char *)buffer, strlen(buffer),
-                           sendBuffer, NULL, &otherKeys);
-        send(sockfd, sendBuffer, sizeof(sendBuffer), 0);
+    if (strncmp(buffer, "exit", 4) == 0)
+        break;
+
+    // Compute block size safely for allocation
+    int blk = compute_block_size_u64(otherKeys.n);
+    int maxBlocks = (strlen(buffer) + blk - 1) / blk;
+
+    // Allocate send buffer to exactly the needed size
+    unsigned long long sendBuffer[maxBlocks];
+
+    encrypt_blocks_u64(buffer, strlen(buffer),
+                       sendBuffer, &sendBufferLen, &otherKeys);
+
+    if (sendBufferLen > 0) {
+        printf("Encrypted Message (first block): %llu\n", sendBuffer[0]);
+
+        // Send only the valid portion of the buffer
+        send(sockfd, sendBuffer, sendBufferLen * sizeof(unsigned long long), 0);
+    } else {
+        printf("Nothing to encrypt.\n");
+    }
     }
 
     close(sockfd);

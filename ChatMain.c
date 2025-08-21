@@ -17,11 +17,12 @@ int main(int argc, char *argv[])
     settings_t userSettings;
 
     loadSettings(&userSettings, "settings.dat");
-
+    
     printf("User Settings Loaded:\n");
-
+    
     int choice = 0;
-
+    
+    system(CLEAR);
     
     while (1)
     {
@@ -35,6 +36,8 @@ int main(int argc, char *argv[])
         choice = getSingleDigitNumericalInput();
 
         fflush(stdout);
+        
+        system(CLEAR);
 
         switch (choice) 
         {

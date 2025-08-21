@@ -1,6 +1,6 @@
 
 #include "Networking/Networking.h"
-#include "Encryption/RSAOpenSSLEncryption.h"
+#include "Encryption/RSAEncryption.h"
 #include "UtilityFiles/UtilityFunctions.h"
 #include "DataTypes.h"
 #include "UserActivity/UserSettings.h"

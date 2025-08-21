@@ -3,6 +3,7 @@
 #include "../UtilityFiles/UtilityFunctions.h"
 #include "../UtilityFiles/StringUtils.h"
 #include "../UserActivity/UserSettings.h"
+#include "../Encryption/RSAEncryption.h"
 
 #define PORT 5000
 #define BUFFER_SIZE 1024
@@ -12,20 +13,30 @@ int sockfd;
 void *receive_thread(void* arg) {
     bool usernameKnown = false;
     char username[BUFFER_SIZE];
-    char buffer[BUFFER_SIZE];
+    unsigned char buffer[BUFFER_SIZE];
+    unsigned long long recvBuffer[BUFFER_SIZE];
+    int recvLen = 0;
+    RSAKeys* keys = (RSAKeys*)arg;
+    RSAKeys* ownKeys = &keys[0];
+    RSAKeys* otherKeys = &keys[1];
 
     ssize_t len = recv(sockfd, username, sizeof(username) - 1, 0);
     if (len > 0) {
         username[len] = '\0';
         usernameKnown = true;
     }
+    len = recv(sockfd, &otherKeys->e, sizeof(otherKeys->e), 0);
+    len = recv(sockfd, &otherKeys->n, sizeof(otherKeys->n), 0);
 
     while (1) {
-        len = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+        len = recv(sockfd, recvBuffer, sizeof(recvBuffer) - 1, 0);
         if (len <= 0) {
             printf("\nConnection closed.\n");
             exit(0);
         }
+        
+        decrypt_blocks_u64(recvBuffer, len, buffer, &recvLen, BUFFER_SIZE, ownKeys);
+
         buffer[len] = '\0';
         printf("\n[%s]: %s\n> ", usernameKnown ? username : "Unknown", buffer);
         fflush(stdout);
@@ -96,17 +107,29 @@ int establish_connection(settings_t *settings) {
         exit(1);
     }
 
+
+    RSAKeys keys = generate_keys_u64(32);
+    RSAKeys otherKeys = {0,0,0};
+    RSAKeys* AllKeys[] = {&keys, &otherKeys};
+
     printf("Connection established. You can start chatting.\n");
-    pthread_create(&recv_thread, NULL, receive_thread, NULL);
+    pthread_create(&recv_thread, NULL, receive_thread, (void*)&AllKeys);
     sleep(1); // Give the thread time to start
     send(sockfd, settings->username, strlen(settings->username), 0);
+    send(sockfd, &keys.e, sizeof(keys.e), 0);
+    send(sockfd, &keys.n, sizeof(keys.n), 0);
+
+    unsigned long long sendBuffer[BUFFER_SIZE];
 
     while (1) {
         printf("> ");
         fgets(buffer, BUFFER_SIZE, stdin);
         if (strncmp(buffer, "exit", 4) == 0)
             break;
-        send(sockfd, buffer, strlen(buffer), 0);
+
+        encrypt_blocks_u64((unsigned char *)buffer, strlen(buffer),
+                           sendBuffer, NULL, &otherKeys);
+        send(sockfd, sendBuffer, sizeof(sendBuffer), 0);
     }
 
     close(sockfd);

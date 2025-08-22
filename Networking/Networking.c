@@ -15,7 +15,7 @@ void *receive_thread(void* arg) {
     char username[BUFFER_SIZE];
     unsigned char buffer[BUFFER_SIZE];
     unsigned long long recvBuffer[BUFFER_SIZE];
-    int recvLen = 0;
+    // int recvLen = 0;
     KeyPair *kp = (KeyPair*)arg;
     RSAKeys *ownKeys = kp->own;
     RSAKeys *otherKeys = kp->other;
@@ -56,7 +56,7 @@ void *receive_thread(void* arg) {
         int recvLen = 0;
 
         decrypt_blocks_u64(recvBuffer, numBlocks,
-                        buffer, &recvLen, BUFFER_SIZE, ownKeys);
+                        buffer, &recvLen, ownKeys);
 
         buffer[recvLen] = '\0';
         printf("\n[%s]: %s\n> ", usernameKnown ? username : "Unknown", buffer);
@@ -129,7 +129,7 @@ int establish_connection(settings_t *settings) {
     }
 
 
-    RSAKeys keys = generate_keys_u64(32);
+    RSAKeys keys = generate_keys_u64(16);
     RSAKeys otherKeys = {0,0,0};
     // Allocate a KeyPair on the heap so it survives after the function scope
     KeyPair *kp = malloc(sizeof(KeyPair));
@@ -164,10 +164,14 @@ int establish_connection(settings_t *settings) {
         int maxBlocks = (strlen(buffer) + blk - 1) / blk;
 
         unsigned long long sendBuffer[maxBlocks];
-        int sendBufferLen;
+        unsigned char testBuffer[BUFFER_SIZE];
+        int testBufferSize = 0;
+        // int sendBufferLen = 0;
 
         encrypt_blocks_u64(buffer, strlen(buffer),
                         sendBuffer, &sendBufferLen, &otherKeys);
+
+        fflush(stdout);
 
         if (sendBufferLen > 0) {
             int msgSize = sendBufferLen * sizeof(unsigned long long);

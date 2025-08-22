@@ -33,7 +33,7 @@ void encrypt_blocks_u64(const char *in, int len,
 
 void decrypt_blocks_u64(const unsigned long long *in, int in_len,
                         unsigned char *out, int *out_len,
-                        int original_len, const RSAKeys *keys);
+                        const RSAKeys *keys);
 
 #else /* USE_OPENSSL defined */
 /******************************

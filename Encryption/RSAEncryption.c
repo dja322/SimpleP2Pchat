@@ -147,39 +147,60 @@ RSAKeys generate_keys_u64(int prime_bits) {
 void encrypt_blocks_u64(const char *in, int len,
                         unsigned long long *out, int *out_len,
                         const RSAKeys *keys) {
-    printf("Encrypting blocks...\n");
     int blk = compute_block_size_u64(keys->n);
-    printf("Block size: %d\n", blk);
     int pos = 0, op = 0;
-    while (pos < len) {
-        int chunk = (len - pos < blk) ? (len - pos) : blk;
+
+    // Always include the null terminator in the encryption stream
+    int total = len + 1;  
+
+    while (pos < total) {
+        int chunk = (total - pos < blk) ? (total - pos) : blk;
         unsigned long long m = 0;
-        for (int i = 0; i < chunk; i++) m = (m << 8) | in[pos + i];
+
+        // Pack chunk bytes into integer
+        for (int i = 0; i < chunk; i++) {
+            m = (m << 8) | (unsigned char)in[pos + i];
+        }
+
+        // If the chunk is smaller than blk, pad with zeroes
+        for (int i = chunk; i < blk; i++) {
+            m = (m << 8);
+        }
+
         out[op++] = modexp_u64(m, keys->e, keys->n);
-        printf("op: %llu\n", out[op - 1]);
         pos += chunk;
     }
+
     *out_len = op;
 }
 
 void decrypt_blocks_u64(const unsigned long long *in, int in_len,
                         unsigned char *out, int *out_len,
-                        int original_len, const RSAKeys *keys) {
+                        const RSAKeys *keys) {
     int blk = compute_block_size_u64(keys->n);
-    int pos = 0, remaining = original_len;
+    int pos = 0;
+
     for (int i = 0; i < in_len; i++) {
-        int chunk = (remaining < blk) ? remaining : blk;
         unsigned long long m = modexp_u64(in[i], keys->d, keys->n);
-        for (int k = chunk - 1; k >= 0; k--) {
+
+        // Unpack exactly blk bytes
+        for (int k = blk - 1; k >= 0; k--) {
             out[pos + k] = (unsigned char)(m & 0xFFu);
             m >>= 8;
         }
-        pos += chunk;
-        remaining -= chunk;
+        pos += blk;
     }
-    *out_len = pos;
-    out[pos] = '\0';
+
+    // Find actual string length by stopping at null terminator
+    int actualLen = 0;
+    while (actualLen < pos && out[actualLen] != '\0') {
+        actualLen++;
+    }
+
+    *out_len = actualLen;
+    out[actualLen] = '\0';  // ensure null-terminated
 }
+
 
 #else /* USE_OPENSSL defined */
 /******************************
@@ -313,7 +334,7 @@ int demo_encryption(int argc, char **argv) {
     printf("\n");
 
     unsigned char pt[2048]; int pt_len = 0;
-    decrypt_blocks_u64(ct, ct_len, pt, &pt_len, msg_len, &keys);
+    decrypt_blocks_u64(ct, ct_len, pt, &pt_len, &keys);
     printf("Decrypted: %s\n", pt);
 
 #else

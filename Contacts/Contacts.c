@@ -39,17 +39,20 @@ void contactMenu()
                 printf("Enter address: ");
                 scanf("%s", address);
                 add_contact(name, address, contacts, &contact_count);
+                system(CLEAR);
                 break;
             case 2:
                 printf("Enter name of contact to remove: ");
                 scanf("%s", name);
                 remove_contact(name, contacts, &contact_count);
+                system(CLEAR);
                 break;
             case 3:
                 list_contacts(contacts, contact_count);
                 break;
             case 4:
                 saveContactsFile("contacts.dat", contacts, contact_count);
+                system(CLEAR);
                 return;
             default:
                 printf("Invalid choice. Please try again.\n");

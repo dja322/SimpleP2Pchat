@@ -1,6 +1,8 @@
 #ifndef CONTACTS_H
 #define CONTACTS_H
 
+#include <stdlib.h>
+
 void contactMenu();
 void add_contact(const char* name, const char* address, contact_t* contacts, int* contact_count);
 void remove_contact(const char* name, contact_t* contacts, int* contact_count);

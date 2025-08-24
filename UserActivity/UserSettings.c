@@ -16,8 +16,11 @@ void userSettingsMenu() {
         writeSettings(&userSettings, "settings.dat");
     }
     
+    system(CLEAR);
+
     while (1)
     {
+        //output settings menu and get user choice
         printf("Settings: \n");
         printf("1. See settings\n");
         printf("2. Change Username\n");
@@ -55,6 +58,7 @@ void userSettingsMenu() {
             case 4:
                 // Back to Main Menu
                 printf("Returning to Main Menu...\n");
+                system(CLEAR);
                 return;
 
             default:

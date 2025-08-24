@@ -8,17 +8,16 @@
 
 int main(int argc, char *argv[])
 {
-    int testEncryption = 0;
-
-    if (testEncryption) {
+    //test encryption if enabled
+    if (OUTPUT_ENCRYPT_LOGS) {
         demo_encryption(argc, argv);
     }
 
+    //initialize settings
     settings_t userSettings;
 
+    //load settings, or create settings if file does not exist
     loadSettings(&userSettings, "settings.dat");
-    
-    printf("User Settings Loaded:\n");
     
     int choice = 0;
     
@@ -26,6 +25,8 @@ int main(int argc, char *argv[])
     
     while (1)
     {
+        //output main menu and get user choice
+        printf("User Settings Loaded\n");
         printf("Peer-to-Peer Chat Menu:\n");
         printf("1. Connect to peer\n");
         printf("2. Contacts\n");

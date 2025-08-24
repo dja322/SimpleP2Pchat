@@ -33,6 +33,6 @@ void decrypt_blocks_u64(const unsigned long long *in, int in_len,
                         unsigned char *out, int *out_len,
                         const RSAKeys *keys);
 
-// int demo_encryption(int argc, char **argv);
+int demo_encryption(int argc, char **argv);
 
 #endif /* RSA_ENCRYPTION_H */

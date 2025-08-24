@@ -1,15 +1,13 @@
 // rsa_demo.c — RSA demo with block mode
 // Build:
 //   U64 mode:    gcc RSAOpenSSLEncryption.c -o encryption_test
-//   OpenSSL:     gcc RSAOpenSSLEncryption.c -o encryption_test -DUSE_OPENSSL -lcrypto
 //
 // Usage: ./encryption_test <prime_bits> "message"
 
 #include "RSAEncryption.h"
 
-#ifndef USE_OPENSSL
 /******************************
- *   U64 (no OpenSSL) path
+ *   U64 path
  *****************************/
 
 // (implementations of helpers remain static, only public functions are declared in .h)
@@ -202,118 +200,12 @@ void decrypt_blocks_u64(const unsigned long long *in, int in_len,
 }
 
 
-#else /* USE_OPENSSL defined */
-/******************************
- *   OpenSSL (BIGNUM) path
- *****************************/
-
-RSAKeysBN generate_keys_bn(int prime_bits) {
-    RSAKeysBN keys = { BN_new(), BN_new(), BN_new() };
-    BN_CTX *ctx = BN_CTX_new();
-    BIGNUM *p = BN_new(), *q = BN_new(), *phi = BN_new();
-    BIGNUM *p1 = BN_new(), *q1 = BN_new(), *g = BN_new();
-
-    BN_generate_prime_ex(p, prime_bits, 0, NULL, NULL, NULL);
-    BN_generate_prime_ex(q, prime_bits, 0, NULL, NULL, NULL);
-
-    keys.n = BN_new();
-    BN_mul(keys.n, p, q, ctx);
-
-    p1 = BN_dup(p); q1 = BN_dup(q);
-    BN_sub_word(p1, 1); BN_sub_word(q1, 1);
-    BN_mul(phi, p1, q1, ctx);
-
-    BN_set_word(keys.e, 65537);
-    BN_gcd(g, keys.e, phi, ctx);
-    if (!BN_is_one(g)) {
-        BN_set_word(keys.e, 3);
-        while (1) {
-            BN_gcd(g, keys.e, phi, ctx);
-            if (BN_is_one(g)) break;
-            BN_add_word(keys.e, 2);
-        }
-    }
-
-    BN_mod_inverse(keys.d, keys.e, phi, ctx);
-
-    BN_free(p); BN_free(q); BN_free(phi);
-    BN_free(p1); BN_free(q1); BN_free(g);
-    BN_CTX_free(ctx);
-    return keys;
-}
-
-int compute_block_size_bn(const BIGNUM *n) {
-    BN_CTX *ctx = BN_CTX_new();
-    BIGNUM *nm1 = BN_dup(n);
-    BN_sub_word(nm1, 1);
-    int bits = BN_num_bits(nm1);
-    int b = bits / 8;
-    if (b < 1) b = 1;
-    BN_free(nm1);
-    BN_CTX_free(ctx);
-    return b;
-}
-
-void encrypt_blocks_bn(const unsigned char *in, int len,
-                       BIGNUM **out, int *out_len,
-                       const RSAKeysBN *keys) {
-    BN_CTX *ctx = BN_CTX_new();
-    int blk = compute_block_size_bn(keys->n);
-    int pos = 0, op = 0;
-
-    while (pos < len) {
-        int chunk = (len - pos < blk) ? (len - pos) : blk;
-        BIGNUM *m = BN_new(), *c = BN_new();
-        BN_bin2bn(in + pos, chunk, m);
-        BN_mod_exp(c, m, keys->e, keys->n, ctx);
-        out[op++] = c;
-        BN_free(m);
-        pos += chunk;
-    }
-    *out_len = op;
-    BN_CTX_free(ctx);
-}
-
-void decrypt_blocks_bn(BIGNUM **in, int in_len,
-                       unsigned char *out, int *out_len,
-                       int original_len, const RSAKeysBN *keys) {
-    BN_CTX *ctx = BN_CTX_new();
-    int blk = compute_block_size_bn(keys->n);
-    int pos = 0, remaining = original_len;
-
-    for (int i = 0; i < in_len; i++) {
-        int chunk = (remaining < blk) ? remaining : blk;
-        BIGNUM *m = BN_new();
-        BN_mod_exp(m, in[i], keys->d, keys->n, ctx);
-        BN_bn2binpad(m, out + pos, chunk);
-        pos += chunk;
-        remaining -= chunk;
-        BN_free(m);
-    }
-    *out_len = pos;
-    out[pos] = '\0';
-    BN_CTX_free(ctx);
-}
-
-void free_blocks_bn(BIGNUM **arr, int len) {
-    for (int i = 0; i < len; i++) BN_free(arr[i]);
-}
-
-void print_bn_hex(const BIGNUM *x) {
-    char *hex = BN_bn2hex(x);
-    printf("%s", hex);
-    OPENSSL_free(hex);
-}
-#endif /* USE_OPENSSL */
-
-
 // Used for demoing encryption made from main
 int demo_encryption(int argc, char **argv) {
     int prime_bits = (argc >= 2) ? atoi(argv[1]) : 20;
     const char *msg = (argc >= 3) ? argv[2] : "Hello, RSA!";
     srand((unsigned)time(NULL));
 
-#ifndef USE_OPENSSL
     if (prime_bits > 32) {
         printf("[U64 build] prime_bits=%d is too large. "
                "Use -DUSE_OPENSSL or pick <=32.\n", prime_bits);
@@ -336,35 +228,6 @@ int demo_encryption(int argc, char **argv) {
     unsigned char pt[2048]; int pt_len = 0;
     decrypt_blocks_u64(ct, ct_len, pt, &pt_len, &keys);
     printf("Decrypted: %s\n", pt);
-
-#else
-    RSAKeysBN keys = generate_keys_bn(prime_bits);
-
-    printf("OpenSSL keys:\n  n(bits)=%d\n", BN_num_bits(keys.n));
-    printf("  n = "); print_bn_hex(keys.n); printf("\n");
-    printf("  e = "); print_bn_hex(keys.e); printf("\n");
-    printf("  d = "); print_bn_hex(keys.d); printf("\n");
-
-    const unsigned char *message = (const unsigned char*)msg;
-    int msg_len = (int)strlen((const char*)message);
-
-    BIGNUM *ct[1024]; int ct_len = 0;
-    encrypt_blocks_bn(message, msg_len, ct, &ct_len, &keys);
-
-    printf("Ciphertext blocks (hex):\n");
-    for (int i = 0; i < ct_len; i++) {
-        print_bn_hex(ct[i]);
-        printf(" ");
-    }
-    printf("\n");
-
-    unsigned char pt[4096]; int pt_len = 0;
-    decrypt_blocks_bn(ct, ct_len, pt, &pt_len, msg_len, &keys);
-    printf("Decrypted: %s\n", pt);
-
-    free_blocks_bn(ct, ct_len);
-    BN_free(keys.n); BN_free(keys.e); BN_free(keys.d);
-#endif
 
     return 0;
 }

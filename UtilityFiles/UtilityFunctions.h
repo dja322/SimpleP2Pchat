@@ -8,7 +8,5 @@
 
 int getSingleDigitNumericalInput();
 
-FILE* openToReadFile(const char* filename);
-
 
 #endif // UTILITY_FUNCTIONS_H
